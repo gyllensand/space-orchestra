@@ -2,9 +2,9 @@ import { useFrame } from "@react-three/fiber";
 import { GodRays } from "@react-three/postprocessing";
 import { BlendFunction, KernelSize } from "postprocessing";
 import { forwardRef, useRef } from "react";
-import { MusicNode } from "../App";
+import { MusicNodeData } from "../App";
 
-const Sun = forwardRef<THREE.Mesh, MusicNode>(
+const Sun = forwardRef<THREE.Mesh, MusicNodeData>(
   ({ analyser, frequency, lightPosition, color }, forwardRef) => {
     useFrame(() => {
       const energy = analyser.getEnergy().byFrequency(frequency);
@@ -27,25 +27,25 @@ const Sun = forwardRef<THREE.Mesh, MusicNode>(
   }
 );
 
-const GodRaysEffect = (node: MusicNode) => {
+const GodRaysEffect = (node: MusicNodeData) => {
   const sunRef = useRef<THREE.Mesh>();
 
   return (
     <>
       <Sun ref={sunRef as any} {...node} />
       {sunRef.current && (
-          <GodRays
-            sun={sunRef.current}
-            blendFunction={BlendFunction.SCREEN}
-            samples={30}
-            density={0.97}
-            decay={0.96}
-            weight={0.2}
-            exposure={0.4}
-            clampMax={1}
-            kernelSize={KernelSize.SMALL}
-            blur={1}
-          />
+        <GodRays
+          sun={sunRef.current}
+          blendFunction={BlendFunction.SCREEN}
+          samples={30}
+          density={0.97}
+          decay={0.96}
+          weight={0.2}
+          exposure={0.4}
+          clampMax={1}
+          kernelSize={KernelSize.SMALL}
+          blur={1}
+        />
       )}
     </>
   );

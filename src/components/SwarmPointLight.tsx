@@ -1,9 +1,9 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
-import { MusicNode } from "../App";
+import { MusicNodeData } from "../App";
 
-const MusicPointLights = (node: MusicNode) => {
+const MusicPointLights = (node: MusicNodeData) => {
   const light = useRef<THREE.PointLight>();
 
   useFrame(() => {

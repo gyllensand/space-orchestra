@@ -2,9 +2,9 @@ import { useFrame } from "@react-three/fiber";
 import { GodRays } from "@react-three/postprocessing";
 import { BlendFunction, KernelSize } from "postprocessing";
 import { forwardRef, useRef } from "react";
-import { MusicNode } from "../App";
+import { MusicNodeData } from "../App";
 
-const Sun = forwardRef<THREE.Mesh, MusicNode>(
+const Sun = forwardRef<THREE.Mesh, MusicNodeData>(
   ({ analyser, frequency, lightPosition, color }, forwardRef) => {
     useFrame(({ clock }) => {
       // analyser.update();
@@ -19,9 +19,9 @@ const Sun = forwardRef<THREE.Mesh, MusicNode>(
         // // @ts-ignore
         // forwardRef.current.position.y += 0.05;
         // @ts-ignore
-        forwardRef.current.position.x =+ Math.sin(clock.getElapsedTime()) * -10;
+        forwardRef.current.position.x = +Math.sin(clock.getElapsedTime()) * -10;
         // @ts-ignore
-        forwardRef.current.position.y =+ Math.cos(clock.getElapsedTime()) * -10;
+        forwardRef.current.position.y = +Math.cos(clock.getElapsedTime()) * -10;
       }
 
       //@ts-ignore
@@ -41,7 +41,7 @@ const Sun = forwardRef<THREE.Mesh, MusicNode>(
   }
 );
 
-const MovingGodrayEffect = (node: MusicNode) => {
+const MovingGodrayEffect = (node: MusicNodeData) => {
   const sunRef = useRef<THREE.Mesh>();
 
   return (
