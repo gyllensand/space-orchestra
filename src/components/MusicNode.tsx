@@ -1,6 +1,5 @@
-import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
-import { animated } from "@react-spring/three";
+import { useFrame, Vector3 } from "@react-three/fiber";
+import { useEffect, useCallback, useRef, useMemo } from "react";
 import { Mesh, PointLight } from "three";
 import { COLORS, MusicNodeData } from "../App";
 import { GodRays } from "@react-three/postprocessing";
@@ -11,29 +10,37 @@ const MusicNode = ({
   position,
   size,
   onClick,
-  player,
+  players,
+  supportivePlayers,
   analyser,
   frequency,
-}: MusicNodeData & { onClick: () => void }) => {
+  isActive,
+}: MusicNodeData & { onClick: () => void; isActive: boolean }) => {
   const outlineMesh = useRef<Mesh>();
   const plateMesh = useRef<Mesh>();
   const outlineMaterial = useRef<Mesh>();
   const hitboxMesh = useRef<Mesh>();
   const light = useRef<PointLight>();
-  const [hovered, setHover] = useState(false);
 
   useEffect(() => {
-    player.toDestination();
-    player.connect(analyser);
-  }, [player, analyser]);
+    players.forEach((player) => {
+      player.toDestination();
+      player.connect(analyser);
+      analyser.update();
+    });
 
-  useFrame(() => {
+    supportivePlayers?.forEach((player) => player.toDestination());
+  }, [players, supportivePlayers, analyser]);
+
+  useFrame(({ clock }) => {
+    analyser.update();
+
     const clamp = (energy: number, threshold: number) =>
       isFinite(energy) && energy > threshold ? energy : threshold;
 
     const energy = analyser.getEnergy().byFrequency(frequency);
 
-    const outerEnergy = analyser._map(energy, -300, -30, 1, 1.5);
+    const outerEnergy = analyser._map(energy, -150, -30, 1, 1.5);
     const outerValue = clamp(outerEnergy, 1);
 
     const innerEnergy = analyser._map(energy, -100, -30, 1, 3);
@@ -60,33 +67,29 @@ const MusicNode = ({
 
   return (
     <>
-      <mesh
-        ref={hitboxMesh}
-        position={position}
-        onClick={() => onClick()}
-        onPointerOver={() => setHover(true)}
-        onPointerOut={() => setHover(false)}
-      >
+      <mesh ref={hitboxMesh} position={position} onClick={() => onClick()}>
         <circleGeometry args={[1, 32]} />
         <meshBasicMaterial visible={false} />
       </mesh>
       <mesh ref={plateMesh} position={position}>
         <ringGeometry args={[0.05, 0.2, 32]} />
-        <meshBasicMaterial envMap={envMap} color={COLORS.gold} />
+        <meshBasicMaterial
+          envMap={envMap}
+          color={isActive ? COLORS.green : COLORS.gold}
+        />
       </mesh>
-      <animated.mesh ref={outlineMesh} position={position}>
+      <mesh ref={outlineMesh} position={position}>
         <torusGeometry args={size} />
 
         <MeshWobbleMaterial
           ref={outlineMaterial}
           attach="material"
-          // color={hovered ? COLORS.orange : COLORS.gold}
           color={COLORS.gold}
           factor={0}
           speed={2}
           roughness={0}
         />
-      </animated.mesh>
+      </mesh>
       <pointLight
         ref={light}
         distance={3}

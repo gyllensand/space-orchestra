@@ -2,9 +2,10 @@ import { useFrame } from "@react-three/fiber";
 import { GodRays } from "@react-three/postprocessing";
 import { BlendFunction, KernelSize } from "postprocessing";
 import { forwardRef, useRef } from "react";
+import { Mesh } from "three";
 import { MusicNodeData } from "../App";
 
-const Sun = forwardRef<THREE.Mesh, MusicNodeData>(
+const Sun = forwardRef<Mesh, MusicNodeData>(
   ({ analyser, frequency, lightPosition, color }, forwardRef) => {
     useFrame(() => {
       const energy = analyser.getEnergy().byFrequency(frequency);
