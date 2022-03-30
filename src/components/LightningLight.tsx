@@ -1,93 +1,130 @@
-import { useHelper } from "@react-three/drei";
-import { useFrame, useThree } from "@react-three/fiber";
-import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { GodRays } from "@react-three/postprocessing";
+import { BlendFunction, KernelSize } from "postprocessing";
+import { forwardRef, useRef } from "react";
 import {
   Mesh,
-  MeshLambertMaterial,
-  PlaneBufferGeometry,
-  PointLight,
+  Vector2,
   PointLightHelper,
-  TextureLoader,
+  PlaneGeometry,
+  MeshBasicMaterial,
+  BufferGeometry,
+  CubicBezierCurve3,
+  Vector3,
 } from "three";
 import { MusicNodeData } from "../App";
 
+const planeCurve = (g: PlaneGeometry, z: number) => {
+  let p = g.parameters;
+  let hw = p.width * 0.5;
+
+  let a = new Vector2(-hw, 0);
+  let b = new Vector2(0, z);
+  let c = new Vector2(hw, 0);
+
+  let ab = new Vector2().subVectors(a, b);
+  let bc = new Vector2().subVectors(b, c);
+  let ac = new Vector2().subVectors(a, c);
+
+  let r =
+    (ab.length() * bc.length() * ac.length()) / (2 * Math.abs(ab.cross(ac)));
+
+  let center = new Vector2(0, z - r);
+  let baseV = new Vector2().subVectors(a, center);
+  let baseAngle = baseV.angle() - Math.PI * 0.5;
+  let arc = baseAngle * 2;
+
+  let uv = g.attributes.uv;
+  let pos = g.attributes.position;
+  let mainV = new Vector2();
+  for (let i = 0; i < uv.count; i++) {
+    let uvRatio = 1 - uv.getX(i);
+    let y = pos.getY(i);
+    mainV.copy(c).rotateAround(center, arc * uvRatio);
+    pos.setXYZ(i, mainV.x, y, -mainV.y);
+  }
+
+  pos.needsUpdate = true;
+};
+
+const Line = forwardRef<Mesh, MusicNodeData>(
+  ({ analyser, frequency, lightPosition, color, player }, forwardRef) => {
+    useFrame(() => {
+      const clamp = (energy: number, threshold: number) =>
+        isFinite(energy) && energy > threshold ? energy : threshold;
+
+      const energy = analyser.getEnergy().byFrequency(frequency);
+      const lightEnergy = analyser._map(energy, -150, -100, 0, 1);
+      const lightValue = clamp(lightEnergy, 0);
+
+      // @ts-ignore
+      // forwardRef.current!.scale.set(lightValue, lightValue, lightValue);
+
+      // if (player.state === "started") {
+      //   // @ts-ignore
+      //   forwardRef.current!.scale.set(1, lightValue, 1);
+      // } else {
+      //   // @ts-ignore
+      //   forwardRef.current!.scale.set(0, 0, 0);
+      // }
+    });
+
+    // const geometry = new PlaneGeometry(500, 1, 20, 20);
+    // const geometry = new PlaneGeometry(500, 20, 20, 20);
+    // planeCurve(geometry, 20);
+
+    // const material = new MeshBasicMaterial({ color });
+
+    // return (
+    //   <mesh
+    //     ref={forwardRef as any}
+    //     position={lightPosition}
+    //     geometry={geometry}
+    //     material={material}
+    //     receiveShadow={false}
+    //   />
+    // );
+
+    const curve = new CubicBezierCurve3(
+      new Vector3(10, -5, 0),
+      new Vector3(10, -2, 0),
+      new Vector3(-10, -2, 0),
+      new Vector3(-10, -5, 0)
+    );
+
+    const points = curve.getPoints(50);
+    const geometry = new BufferGeometry().setFromPoints(points);
+
+    return (
+      // @ts-ignore
+      <line geometry={geometry} ref={forwardRef as any}>
+        <lineBasicMaterial color={color} linewidth={10} />
+      </line>
+    );
+  }
+);
+
 const LightningLight = (node: MusicNodeData) => {
-  const { scene } = useThree();
-  const light = useRef<PointLight>();
-  let cloudParticles: Mesh[] = [];
-
-  // Smoke Texture Loader
-  let loader = new TextureLoader();
-  // loader.load(
-  //   "https://raw.githubusercontent.com/navin-navi/codepen-assets/master/images/smoke.png",
-  //   function (texture) {
-  //     const cloudGeo = new PlaneBufferGeometry(200, 200);
-  //     const cloudMaterial = new MeshLambertMaterial({
-  //       map: texture,
-  //       transparent: true,
-  //     });
-
-  //     for (let p = 0; p < 5; p++) {
-  //       let cloud = new Mesh(cloudGeo, cloudMaterial);
-  //       cloud.position.set(Math.random() * 200 - 100, 50, -(p * 50 + 50));
-  //       // cloud.position.set(
-  //       //   Math.random() * (-50 + 0) - 0,
-  //       //   0,
-  //       //   Math.random() * (-150 + 100) - 100
-  //       // );
-  //       cloud.rotation.x = 1.16;
-  //       // cloud.rotation.y = -0.12;
-  //       // cloud.rotation.z = Math.random() * 2 * Math.PI;
-  //       cloud.material.opacity = 0.55;
-  //       cloudParticles.push(cloud);
-  //       scene.add(cloud);
-  //     }
-  //   }
-  // );
-
-  // useFrame(() => {
-  //   const energy = node.analyser.getEnergy().byFrequency(node.frequency);
-  //   const scale = node.analyser._map(energy, -90, -30, 1, 300);
-  //   const intensity = isFinite(scale) && scale > 1 ? scale : 1;
-
-  //   if (Math.random() > 0.96 || light.current!.intensity > 100) {
-  //     if (light.current!.intensity < 100) {
-  //       // light.current!.position.set(0, 20, -200);
-  //       light.current!.position.set(
-  //         Math.random() * 200 - 100,
-  //         Math.random() * 60 - 40,
-  //         -100
-  //       );
-  //     }
-  //     light.current!.intensity = 1 + Math.random() * 10;
-  //   }
-
-  //   cloudParticles.forEach((p) => {
-  //     p.rotation.z -= 0.002;
-  //   });
-
-  //   // if (light.current) {
-  //   //   light.current.intensity = intensity;
-  //   // }
-  // });
-
-  useHelper(light, PointLightHelper, 10);
+  const lineRef = useRef<THREE.Mesh>();
 
   return (
     <>
-      {/* <mesh position={[0, -500, -1200]}>
-        <sphereBufferGeometry args={[1000, 32, 32]} />
-        <meshStandardMaterial attach="material" color="red" />
-      </mesh> */}
-      <ambientLight />
-      <pointLight
-        ref={light}
-        distance={50}
-        intensity={50}
-        decay={1.5}
-        position={[0, 20, -150]}
-        color={node.color}
-      />
+      <Line ref={lineRef as any} {...node} />
+
+      {lineRef.current && (
+        <GodRays
+          sun={lineRef.current}
+          blendFunction={BlendFunction.SCREEN}
+          samples={30}
+          density={0.97}
+          decay={0.8}
+          weight={0.3}
+          exposure={0.3}
+          clampMax={1}
+          kernelSize={KernelSize.SMALL}
+          blur={1}
+        />
+      )}
     </>
   );
 };
