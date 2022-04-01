@@ -2,15 +2,16 @@ import { useCallback, useEffect, useState } from "react";
 import { useThree } from "@react-three/fiber";
 import { CameraShake, OrbitControls } from "@react-three/drei";
 import { EffectComposer } from "@react-three/postprocessing";
-import { Transport, start, Draw } from "tone";
+import { Transport, start } from "tone";
 import MusicNode from "./MusicNode";
 import Swarm from "./Swarm";
 import SwarmPointLight from "./SwarmPointLight";
 import GodRaysEffect from "./GodRaysEffect";
-import { DEFAULT_FADE, musicNodes, secondaryMusicNodes } from "../App";
+import { musicNodes, secondaryMusicNodes } from "../App";
 import MovingGodrayEffect from "./MovingGodrayEffect";
 import LightningLight from "./LightningLight";
 import MusicPointsLights from "./MusicPointLights";
+const debounce = require("lodash.debounce");
 
 const Scene = () => {
   const { scene, camera } = useThree();
@@ -43,8 +44,9 @@ const Scene = () => {
     setHasBeenInteractedWith(true);
   }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const onMusicNodeClick = useCallback(
-    async (index: number) => {
+    debounce(async (index: number) => {
       if (!hasBeenInteractedWith) {
         await initializeTone();
       }
@@ -80,6 +82,7 @@ const Scene = () => {
       }
 
       if (
+        // play additional perc when all drums enabled
         secondaryMusicNodes[0].player.state === "stopped" &&
         [musicNodes[0], musicNodes[1], musicNodes[2]].every(
           (node) => node.player.state === "started"
@@ -96,6 +99,7 @@ const Scene = () => {
       }
 
       if (
+        // add more plucks when all synths enabled
         secondaryMusicNodes[1].player.state === "stopped" &&
         [musicNodes[3], musicNodes[4]].every(
           (node) => node.player.state === "started"
@@ -112,6 +116,7 @@ const Scene = () => {
       }
 
       if (
+        // add a bass when all other nodes enabled
         secondaryMusicNodes[2].player.state === "stopped" &&
         musicNodes.every((node) => node.player.state === "started")
       ) {
@@ -122,7 +127,7 @@ const Scene = () => {
       ) {
         secondaryMusicNodes[2].player.stop().unsync();
       }
-    },
+    }, 100),
     [initializeTone, hasBeenInteractedWith, activeNodes]
   );
 
@@ -130,7 +135,12 @@ const Scene = () => {
     <>
       <color attach="background" args={[0, 0, 0]} />
       <pointLight position={[10, 5, 10]} distance={50} intensity={0.5} />
-      <OrbitControls />
+      <OrbitControls
+        enablePan={false}
+        enableRotate={false}
+        minDistance={2}
+        maxDistance={20}
+      />
 
       <CameraShake
         yawFrequency={0.2}
@@ -154,7 +164,7 @@ const Scene = () => {
           {musicNodes.map((o, i) => i < 3 && <GodRaysEffect key={i} {...o} />)}
           {/* <MovingGodrayEffect {...musicNodes[4]} /> */}
           {/* <LightningLight {...musicNodes[4]} /> */}
-          <MusicPointsLights {...musicNodes[3]} />
+          {/* <MusicPointsLights {...musicNodes[3]} /> */}
         </>
       </EffectComposer>
     </>

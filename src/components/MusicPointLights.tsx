@@ -1,18 +1,8 @@
 import { useFrame } from "@react-three/fiber";
 import { GodRays } from "@react-three/postprocessing";
 import { BlendFunction, KernelSize } from "postprocessing";
-import { Transport, Draw } from "tone";
-import { forwardRef, useMemo, useRef } from "react";
-import {
-  Mesh,
-  Vector2,
-  PointLightHelper,
-  PlaneGeometry,
-  MeshBasicMaterial,
-  BufferGeometry,
-  CubicBezierCurve3,
-  Vector3,
-} from "three";
+import { forwardRef, useRef } from "react";
+import { Mesh, PlaneGeometry, MeshBasicMaterial, Vector3 } from "three";
 import { MusicNodeData } from "../App";
 
 const positions = [
@@ -24,7 +14,6 @@ const positions = [
 
 const Line = forwardRef<Mesh, MusicNodeData>(
   ({ analyser, frequency, lightPosition, color, player }, forwardRef) => {
-    let prevPosition = positions[0];
     let hasRandomized = false;
 
     useFrame(() => {
@@ -37,17 +26,14 @@ const Line = forwardRef<Mesh, MusicNodeData>(
 
       if (lightValue === 0 && !hasRandomized) {
         hasRandomized = true;
-        console.log("övre");
+
         // @ts-ignore
         forwardRef.current!.position.set(
-          // Math.random() * 300 - 150,
-          // Math.random() * 300 - 150,
           Math.ceil(Math.random() * 120) * (Math.round(Math.random()) ? 1 : -1),
           Math.ceil(Math.random() * 120) * (Math.round(Math.random()) ? 1 : -1),
           -150
         );
       } else if (lightValue > 0 && hasRandomized) {
-        console.log("undre");
         hasRandomized = false;
       }
 

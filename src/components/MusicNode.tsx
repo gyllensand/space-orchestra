@@ -1,14 +1,14 @@
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Mesh, PointLight } from "three";
 import { COLORS, MusicNodeData } from "../App";
 import { GodRays } from "@react-three/postprocessing";
 import { BlendFunction, KernelSize } from "postprocessing";
 import { useCubeTexture, MeshWobbleMaterial } from "@react-three/drei";
-import { Transport, Draw } from "tone";
 
 const MusicNode = ({
   position,
+  player,
   size,
   onClick,
   analyser,
@@ -20,20 +20,6 @@ const MusicNode = ({
   const outlineMaterial = useRef<Mesh>();
   const hitboxMesh = useRef<Mesh>();
   const light = useRef<PointLight>();
-
-  console.log("ute")
-  useEffect(() => {
-    console.log("inne")
-    Transport.scheduleRepeat((time) => {
-      // @ts-ignore
-      // forwardRef.current?.scale.set(Math.random(), 1, 1);
-      // console.log(time);
-      Draw.schedule(() => {
-        console.log(time);
-      }, time);
-    }, "1m");
-  }, [])
-
 
   useFrame(({ clock }) => {
     analyser.update();
