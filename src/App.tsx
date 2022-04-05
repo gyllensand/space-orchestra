@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Canvas, Vector3 } from "@react-three/fiber";
-import { Unit, Player } from "tone";
+import { Player } from "tone";
 import AudioEnergy, { FrequencyNames } from "./AudioEnergy";
 import Scene from "./components/Scene";
 
@@ -84,8 +84,6 @@ export const musicNodes: MusicNodeData[] = [
     position: [2.5, -1.25, -5],
     size: [0.7, 0.08, 30, 200],
     frequency: "mid",
-    // lightPosition: [0, -120, -150],
-    // lightPosition: [0, 0, 5],
     lightPosition: [0, -120, -150],
     color: COLORS.blue,
     analyser: new AudioEnergy(),

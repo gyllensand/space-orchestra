@@ -8,9 +8,6 @@ import Swarm from "./Swarm";
 import SwarmPointLight from "./SwarmPointLight";
 import GodRaysEffect from "./GodRaysEffect";
 import { musicNodes, secondaryMusicNodes } from "../App";
-import MovingGodrayEffect from "./MovingGodrayEffect";
-import LightningLight from "./LightningLight";
-import MusicPointsLights from "./MusicPointLights";
 const debounce = require("lodash.debounce");
 
 const Scene = () => {
@@ -53,7 +50,7 @@ const Scene = () => {
 
       if (Transport.state === "stopped") {
         setTimeout(() => {
-          Transport.start();
+          Transport.start("+0.1");
         }, 100);
       }
 
@@ -162,9 +159,6 @@ const Scene = () => {
             />
           ))}
           {musicNodes.map((o, i) => i < 3 && <GodRaysEffect key={i} {...o} />)}
-          {/* <MovingGodrayEffect {...musicNodes[4]} /> */}
-          {/* <LightningLight {...musicNodes[4]} /> */}
-          {/* <MusicPointsLights {...musicNodes[3]} /> */}
         </>
       </EffectComposer>
     </>
